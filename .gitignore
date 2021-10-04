@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Steph's local data files
+nsduh.csv
+hpsa.csv
