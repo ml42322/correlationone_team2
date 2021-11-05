@@ -4,6 +4,11 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import statsmodels.api as sm
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, accuracy_score
+		 
 
 # resources: https://docs.streamlit.io/knowledge-base/tutorials/databases/tableau
 # https://towardsdatascience.com/coding-ml-tools-like-you-code-ml-models-ddba3357eace
@@ -12,7 +17,7 @@ import seaborn as sns
 
 
 ######### IMPORT DATA #########
-@st.cache(suppress_st_warning=True)
+@st.cache(suppress_st_warning=True,allow_output_mutation=True)
 def import_data():
     nsduh = pd.read_csv('./Data/nsduh_data_cleaned.csv')
     return nsduh
@@ -91,6 +96,86 @@ if section == "Methodology":
 if section == "Findings and Recommendation":
 
     st.title('Findings and Recommendation')
+    cols = ['Overall_Health_Fair_Poor',
+			'Education_Category_Less_than_HS',
+			'Perceived_Unmet_Need',
+			'Adult_Employment_Status_Unemployed',
+			'Education_Category_HS_Grad',
+			'Overall_Health_Good',
+			'Worst_Psychological_Distress_Level',
+			'Adult_Employment_Status_Other',
+			'Education_Category_Some_College_Assoc',
+			'Gender_Male',
+			'Num_Days_Skipped_Work_Past_30_Days',
+			'Year',
+			'Total_Income_Family_Recode_75000orMore',
+			'Age_Category_Six_Levels_50-64',
+			'Age_Category_Six_Levels_35-49',
+			'Age_Category_Six_Levels_26-34',
+			'Age_Category_Six_Levels_65_And_Above',
+			'Overall_Health_Very_Good',
+			'Race_Ethnicity_Black',
+			'Treatment_Type_Past_Year_Inpatient_Only',
+			'PDEN10_Less_than_1_Mil']
+
+    df['Overall_Health_Fair_Poor'] = np.where(df['Overall_Health'].isin([4,5]),1,0)
+    df['Education_Category_Less_than_HS'] = np.where(df['Education_Category'] == 1,1,0)
+    df['Adult_Employment_Status_Unemployed'] = np.where(df['Adult_Employment_Status'] == 3,1,0)
+    df['Education_Category_HS_Grad'] = np.where(df['Education_Category'] == 2,1,0)
+    df['Overall_Health_Good'] = np.where(df['Overall_Health'] == 3,1,0)
+    df['Adult_Employment_Status_Other'] = np.where(df['Adult_Employment_Status'] == 4,1,0)
+    df['Education_Category_Some_College_Assoc'] = np.where(df['Education_Category'] == 3,1,0)
+    df['Gender_Male'] = np.where(df['Gender'] == 1, 1,0)
+    df['Total_Income_Family_Recode_75000orMore'] = np.where(df['Total_Income_Family_Recode'] == 4,1,0)
+    df['Age_Category_Six_Levels_50-64'] = np.where(df['Age_Category_Six_Levels'] == 5,1,0)
+    df['Age_Category_Six_Levels_35-49'] = np.where(df['Age_Category_Six_Levels'] == 4,1,0)
+    df['Age_Category_Six_Levels_26-34'] = np.where(df['Age_Category_Six_Levels'] == 3,1,0)
+    df['Age_Category_Six_Levels_65_And_Above'] = np.where(df['Age_Category_Six_Levels'] == 6,1,0)
+    df['Overall_Health_Very_Good'] = np.where(df['Overall_Health'] == 2,1,0)
+    df['Race_Ethnicity_Black'] = np.where(df['Race_Ethnicity'] == 2,1,0)
+    df['Treatment_Type_Past_Year_Inpatient_Only'] = np.where(df['Treatment_Type_Past_Year'] == 1,1,0)
+    df['PDEN10_Less_than_1_Mil'] = np.where(df['PDEN10'] == 2,1,0)
+    df = df.dropna()
+    X = df.drop(['Serious_Psychological_Distress_Indicator_Past_Month','Id','Serious_Psychological_Distress_Indicator_Past_Year'], axis=1) # independent variables data
+    y = df['Serious_Psychological_Distress_Indicator_Past_Month']  # dependent variable data
+    
+
+    st.write(''' ### Model Output ''')
+    st.echo()
+    with st.echo():
+    	CX_train, X_test, y_train, y_test = train_test_split(X[cols], y, test_size=0.33, random_state=42)
+    	logisticRegr = LogisticRegression()
+    	logisticRegr.fit(X_test, y_test)
+    	predictions = logisticRegr.predict(X_test)
+    	score = logisticRegr.score(X_test, y_test)
+    	st.write('Accuracy for X_forward: {}'.format(score))
+
+    	res = sm.Logit(y, X[cols]).fit()
+    	st.write(res.summary())    	
+
+    st.write(''' ### Model Accuracy ''')
+    with st.echo():
+    	yhat = logisticRegr.predict(X_test)
+    	prediction = list(map(round, yhat))
+
+    	# confusion matrix
+    	cm = confusion_matrix(y_test, prediction)
+    	st.write("Confusion Matrix : \n", cm)
+
+    	# accuracy score of the model
+    	st.write('Test accuracy = ', accuracy_score(y_test, prediction))
+
+
+    st.write(''' ### Adjusted Odds Ratio ''')
+
+    with st.echo():
+    	params = res.params
+    	conf = res.conf_int()
+    	conf['Odds Ratio'] = params
+    	conf.columns = ['5%', '95%','Odds Ratio']
+    	st.write(np.exp(conf))
+
+
 
 
 ######### RESOURCES #########
