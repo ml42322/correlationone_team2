@@ -4,10 +4,13 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from matplotlib.colors import Colormap, LinearSegmentedColormap
 import statsmodels.api as sm
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, accuracy_score
+
+st.set_option('deprecation.showPyplotGlobalUse', False)
 		 
 
 # resources: https://docs.streamlit.io/knowledge-base/tutorials/databases/tableau
@@ -20,7 +23,8 @@ from sklearn.metrics import confusion_matrix, accuracy_score
 @st.cache(suppress_st_warning=True,allow_output_mutation=True)
 def import_nsduh():
 	nsduh = pd.read_csv('Data/nsduh_data_cleaned.csv')
-	# hpsa = pd.read_csv('Data/HPSA_Cleaned.csv')
+	nsduh = nsduh[nsduh['PDEN10']!=3]
+	nsduh.drop(['Unnamed: 0'], axis=1, inplace=True)
 	return nsduh
 
 nsduh = import_nsduh()
@@ -54,7 +58,7 @@ st.sidebar.markdown("""
 
 # Outline Options for Sidebar
 section = st.sidebar.selectbox("Navigation Bar", ("The Team", "Project Overview", "Datasets",
-                               "Exploratory Data Analysis", "Methodology", "Findings and Recommendation", "Resources"))
+                               "Exploratory Data Analysis", "Methodology", "Findings and Recommendation"))
 
 st.sidebar.markdown("""
 ### Team Members: 
@@ -189,9 +193,54 @@ if section == "Datasets":
 
 ######### EXPLORATORY DATA ANALYSIS #########
 if section == "Exploratory Data Analysis":
+	st.title('Exploratory Data Analysis')
 
-    st.title('Exploratory Data Analysis')
-	
+	def show_plots():
+
+		colors = sns.color_palette("cubehelix", n_colors=5)
+		cmap1 = LinearSegmentedColormap.from_list("my_colormap", colors)
+
+		st.write('''
+		#### Figure 1. 
+		Distribution of Susceptibility to Mental Health Issues by Population Density
+		''')
+		sns.countplot(y='Serious_Psychological_Distress_Indicator_Past_Month', hue='PDEN10', data=nsduh, palette='ch:start=.65,rot=-.5')
+		st.pyplot()
+
+		st.write('''
+		#### Figure 2. 
+		Distribution of Gender by Population Susceptibility to Mental Health Issues
+		''')
+		sns.countplot(y='Serious_Psychological_Distress_Indicator_Past_Month', hue='Gender', data=nsduh, palette='ch:start=.65,rot=-.5')
+		st.pyplot()
+
+		st.write('''
+		#### Figure 3. 
+		Proportion of Participants's Susceptibility to Mental Health Issues by Age Group
+		''')
+		table=pd.crosstab(nsduh.Age_Category_Six_Levels,nsduh.Serious_Psychological_Distress_Indicator_Past_Month)
+		table.div(table.sum(1).astype(float), axis=0).plot(kind='bar', stacked=True, colormap=cmap1)
+		plt.xlabel('Race/Ethnicity')
+		plt.ylabel('Proportion of Participants')
+		st.pyplot()
+
+		st.write('''
+		#### Figure 4. 
+		Proportion of Participants's Susceptibility to Mental Health Issues by Race/Ethnicty
+		''')
+		table=pd.crosstab(nsduh.Race_Ethnicity,nsduh.Serious_Psychological_Distress_Indicator_Past_Month)
+		table.div(table.sum(1).astype(float), axis=0).plot(kind='bar', stacked=True, colormap=cmap1)
+		plt.xlabel('Race/Ethnicity')
+		plt.ylabel('Proportion of Participants')
+		st.pyplot()
+
+		st.write('''
+		#### Figure 5.
+		[Interactive Infographic on Tableau](https://public.tableau.com/app/profile/chiu.feng.yap/viz/DS4A-DataDivasFinalProjectDeliverable/Infographic)
+		''')
+		st.image('DS4A_Team2_Datafolio.jpg')
+
+	show_plots()
 
 
 ######### METHODOLOGY #########
@@ -285,9 +334,3 @@ if section == "Findings and Recommendation":
     	st.write(np.exp(conf))
 
 
-
-
-######### RESOURCES #########
-if section == "Resources":
-
-    st.title('Resources')
