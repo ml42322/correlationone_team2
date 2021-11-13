@@ -131,10 +131,5 @@ dmypy.json
 .pyre/
 
 # Steph's local data files
-nsduh2019.csv
-nsduh2018.csv
-nsduh2017.csv
-nsduh2016.csv
-nsduh2015.csv
-hpsa.csv
 /Data
+/Images
