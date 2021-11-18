@@ -21,6 +21,13 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 
 ######### IMPORT DATA #########
 @st.cache(suppress_st_warning=True,allow_output_mutation=True)
+
+def import_df():
+	nsduh = pd.read_csv('Data/nsduh_data_cleaned.csv')
+	return nsduh
+
+df = import_df()
+
 def import_nsduh():
 	nsduh = pd.read_csv('Data/nsduh_data_cleaned.csv')
 	nsduh = nsduh[nsduh['PDEN10']!=3]
@@ -58,7 +65,8 @@ st.sidebar.markdown("""
 
 # Outline Options for Sidebar
 section = st.sidebar.selectbox("Navigation Bar", ("The Team", "Project Overview", "Datasets",
-                               "Exploratory Data Analysis", "Methodology", "Findings and Recommendation"))
+                               "Exploratory Data Analysis", "Methodology", "Findings and Recommendation",
+							   "References"))
 
 st.sidebar.markdown("""
 ### Team Members: 
@@ -246,8 +254,29 @@ if section == "Exploratory Data Analysis":
 ######### METHODOLOGY #########
 if section == "Methodology":
 
-    st.title('Methodology')
+	st.write('''
+	
+	# Methodology
+	### Measures
+	The dependent variable in this project was the susceptibility to mental health issues. The independent variable in this project was the population density type (PDEN10) of the living areas of the individuals. This was a binary variable (1 = >=1 million persons/2 = <1 million persons). 
 
+	Sociodemographic variables include: age, gender, education level, race/ethnicity, employment status were controlled for in the multivariate analysis. All the variables above were treated as categorical variables: Gender (male/female); Total Income for Respondent/Family (<$10,000/$10,000 - $19,999/ $20,000-$29,999/ $30,000-$39,999/ $40,000-$49,999/$50,000-$74,999/>=$75,000); Education level (Less than HS/HS grad/Some college/Associate’s degree/ College graduate/other); Race/Ethnicity (White/Black/ Native American/ Native Hawaiian/Pacific Islander/ Asian/ More than One Race/ Hispanic); Employment Status (Employed full-time/Employed part-time/ Unemployed/ Other/ Underage).
+
+	### Tools 
+	Data analysis was performed using Python (version 3.8.8) 5, using descriptive statistics, bivariate analysis, multivariate logistic regression. 
+	
+	### Bivariate Analysis
+	Chi-square statistical test was performed to find the relationship between the independent variable of interest (PDEN10) and the target variable of interest. 	
+	(insert table 2 from report)
+
+	### Multivariate Analysis 
+	Multivariate Logistic Regression is utilized as an explanatory model to find the key drivers of our binary outcome variable: Experienced Serious Psychological Distress in the Past Month. Adjusted odds ratios (AORs) with 95% confidence intervals (CIs) were computed.
+
+	### Modeling Building
+	First, we exclude variables from areas, such as Substance Use Disorder, to only include mental health related, sociodemographics, and use of healthcare facility variables. We computed the VIFs of all features and drop variables with a high p-value and a high VIF (threshold = 10) . After re-fitting the model with the new set of features, we checked for statistically significant variables. If desirable, we proceeded with model evaluation. 
+	
+	Then, we used sklearn.linear_model’s LogisticRegression() in Python to create logistic regression models using features selected from Recursive Elimination Method (k=10 and 20) and Forward Feature Selection Method. To control sociodemographic variables, they are later added to the selected features for our final modeling.
+	''')
 
 ######### FINDINGS AND RECOMMENDATION #########
 if section == "Findings and Recommendation":
@@ -333,4 +362,19 @@ if section == "Findings and Recommendation":
     	conf.columns = ['5%', '95%','Odds Ratio']
     	st.write(np.exp(conf))
 
+######### References #########
+if section == "References":
 
+	st.write('''
+	## References 
+
+	1. Open Minds. (2020). The U.S. Mental Health Market: $225.1 Billion In Spending In 2019: An OPEN MINDS Market Intelligence Report. Retrieved From https://openminds.com/intelligence-report/the-u-s-mental-health-market-225-1-billion-in-spending-in-2019-an-open-minds-market-intelligence-report/.
+
+	2. Rebecca E.S., David S.M., and Rinad S.B. (2021). Lessons from Maslow: Prioritizing Funding to Improve the Quality of Community Mental Health and Substance Use Services. Retrieved from https://ps.psychiatryonline.org/doi/full/10.1176/appi.ps.202000209. 
+	
+	3. World Health Organization. (2003). Mental Health Policy and Service Guidance Package. Retrieved from https://www.who.int/mental_health/policy/services/6_financing_WEB_07.pdf. 
+
+	4. Tableau Visualization Software. Tableau Desktop Professional Edition, version (2021.1.5). Available at https://www.tableau.com. 
+
+	5. Python Software Foundation. Python Language Reference, version 3.8.8. Available at https://www.pythog.org.
+	''')
